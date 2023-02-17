@@ -2,8 +2,8 @@ package command
 
 import (
 	"github.com/bwmarrin/discordgo"
-	"github.com/kevingdc/pulley/internal/bot/interaction"
-	"github.com/kevingdc/pulley/internal/bot/message"
+	"github.com/kevingdc/pulley/services/bot/interaction"
+	"github.com/kevingdc/pulley/services/bot/message"
 )
 
 type SetupCommand struct{}
@@ -11,7 +11,7 @@ type SetupCommand struct{}
 func (command *SetupCommand) HandleCommand(session *discordgo.Session, i *discordgo.InteractionCreate) {
 	responder := interaction.Responder{Session: session, Interaction: i.Interaction}
 
-	if i.Member == nil {
+	if wasSentAsDM := i.Member == nil; wasSentAsDM {
 		responder.SendInvalidChannelResponse()
 		return
 	}

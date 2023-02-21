@@ -16,7 +16,7 @@ func (command *SetupCommand) HandleCommand(session *discordgo.Session, i *discor
 		return
 	}
 
-	messageToSend := &message.DirectMessage{
+	messageToSend := &message.Direct{
 		UserID:  i.Member.User.ID,
 		Content: "Hey there! Congratulations, you just executed your first slash command",
 		Session: session,

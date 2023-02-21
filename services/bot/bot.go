@@ -6,8 +6,10 @@ import (
 
 	"github.com/bwmarrin/discordgo"
 	"github.com/kevingdc/pulley/pkg/config"
+	"github.com/kevingdc/pulley/pkg/messenger"
 	"github.com/kevingdc/pulley/services/bot/command"
 	"github.com/kevingdc/pulley/services/bot/handler"
+	discordMessenger "github.com/kevingdc/pulley/services/bot/messenger"
 )
 
 type Bot struct {
@@ -30,7 +32,7 @@ func (bot *Bot) Start() {
 
 	handler.Setup(bot.session)
 
-	setIntents(bot.session)
+	bot.setIntents()
 
 	err = bot.session.Open()
 	if err != nil {
@@ -38,7 +40,8 @@ func (bot *Bot) Start() {
 		return
 	}
 
-	command.Setup(session)
+	command.Setup(bot.session)
+	bot.registerMessenger()
 
 	fmt.Println("The bot is now running.")
 }
@@ -48,6 +51,10 @@ func (bot *Bot) Stop() {
 	bot.session.Close()
 }
 
-func setIntents(session *discordgo.Session) {
-	session.Identify.Intents = discordgo.MakeIntent(discordgo.IntentsGuildMessages | discordgo.IntentsDirectMessages)
+func (bot *Bot) registerMessenger() {
+	messenger.Register(discordMessenger.New(bot.session))
+}
+
+func (bot *Bot) setIntents() {
+	bot.session.Identify.Intents = discordgo.MakeIntent(discordgo.IntentsGuildMessages | discordgo.IntentsDirectMessages)
 }

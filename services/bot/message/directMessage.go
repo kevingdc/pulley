@@ -4,13 +4,13 @@ import (
 	"github.com/bwmarrin/discordgo"
 )
 
-type DirectMessage struct {
+type Direct struct {
 	UserID  string
 	Content string
 	Session *discordgo.Session
 }
 
-func (message *DirectMessage) Send() (*discordgo.Message, error) {
+func (message *Direct) Send() (*discordgo.Message, error) {
 	session := message.Session
 
 	channel, err := session.UserChannelCreate(message.UserID)
@@ -18,7 +18,7 @@ func (message *DirectMessage) Send() (*discordgo.Message, error) {
 		return nil, err
 	}
 
-	channelMessage := &ChannelMessage{
+	channelMessage := &Channel{
 		ChannelID: channel.ID,
 		Content:   message.Content,
 		Session:   session,

@@ -4,13 +4,13 @@ import (
 	"github.com/bwmarrin/discordgo"
 )
 
-type ChannelMessage struct {
+type Channel struct {
 	ChannelID string
 	Content   string
 	Session   *discordgo.Session
 }
 
-func (message *ChannelMessage) Send() (*discordgo.Message, error) {
+func (message *Channel) Send() (*discordgo.Message, error) {
 	session := message.Session
 	return session.ChannelMessageSend(message.ChannelID, message.Content)
 }

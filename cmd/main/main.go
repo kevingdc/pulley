@@ -14,11 +14,10 @@ func main() {
 	config := config.Load()
 
 	bot := bot.New(config)
-	api := api.New(config)
-
 	bot.Start()
 	defer bot.Stop()
 
+	api := api.New(config)
 	go api.Start()
 	defer api.Stop()
 

@@ -5,7 +5,6 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/kevingdc/pulley/pkg/config"
-	"github.com/kevingdc/pulley/services/api/router"
 )
 
 type API struct {
@@ -21,7 +20,7 @@ func (api *API) Start() {
 	app := fiber.New()
 	api.app = app
 
-	router.RegisterRoutes(api.app)
+	api.RegisterRoutes()
 
 	log.Fatal(api.app.Listen(":" + api.config.Port))
 }

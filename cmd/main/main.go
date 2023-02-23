@@ -6,12 +6,16 @@ import (
 	"syscall"
 
 	"github.com/kevingdc/pulley/pkg/config"
+	"github.com/kevingdc/pulley/pkg/db"
 	"github.com/kevingdc/pulley/services/api"
 	"github.com/kevingdc/pulley/services/bot"
 )
 
 func main() {
 	config := config.Load()
+
+	db.Connect(config)
+	defer db.Close()
 
 	bot := bot.New(config)
 	bot.Start()

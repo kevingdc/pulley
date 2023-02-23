@@ -6,5 +6,5 @@ import (
 )
 
 func (handler *Handler) InteractionCreate(session *discordgo.Session, interaction *discordgo.InteractionCreate) {
-	command.Handle(session, interaction)
+	command.Handle(session, interaction, handler.config)
 }

@@ -1,8 +1,10 @@
 package github
 
 import (
+	"encoding/json"
 	"log"
 	"net/http"
+	"strconv"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/go-github/github"
@@ -10,9 +12,11 @@ import (
 	"github.com/kevingdc/pulley/pkg/messenger"
 	"github.com/kevingdc/pulley/pkg/user"
 	"github.com/valyala/fasthttp/fasthttpadaptor"
+
+	internalgithub "github.com/kevingdc/pulley/pkg/github"
 )
 
-func handleGithubWebhook(config config.Config) fiber.Handler {
+func handleGithubWebhook(config *config.Config) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		request := &http.Request{}
 		fasthttpadaptor.ConvertRequest(c.Context(), request, false)
@@ -24,6 +28,7 @@ func handleGithubWebhook(config config.Config) fiber.Handler {
 		}
 
 		payload, err := github.ParseWebHook(github.WebHookType(request), payloadBytes)
+
 		if err != nil {
 			log.Println(err)
 			return fiber.ErrBadRequest
@@ -41,5 +46,33 @@ func handleGithubWebhook(config config.Config) fiber.Handler {
 		})
 
 		return c.SendString("Hello, World!")
+	}
+}
+
+func handleGithubOAuthRedirect(config *config.Config) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		if c.Query("state") != config.GithubOAuthState {
+			return fiber.ErrForbidden
+		}
+
+		githubUser, err := internalgithub.GetUser(config, c.Query("code"))
+		if err != nil {
+			return fiber.ErrForbidden
+		}
+
+		var chatConfig user.ChatConfig
+		json.Unmarshal([]byte(c.Query("chat_config")), &chatConfig)
+
+		newUser := &user.User{
+			RepositoryID:   strconv.FormatInt(githubUser.ID, 10),
+			RepositoryType: user.RepoGitHub,
+			ChatID:         chatConfig.ChatID,
+			ChatType:       user.Chat(chatConfig.ChatType),
+		}
+
+		newUser.Create()
+
+		return c.Redirect("https://github.com/apps/pulley-app/installations/new")
+
 	}
 }

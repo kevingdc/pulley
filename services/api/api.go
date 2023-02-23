@@ -8,11 +8,11 @@ import (
 )
 
 type API struct {
-	config config.Config
+	config *config.Config
 	app    *fiber.App
 }
 
-func New(config config.Config) (api *API) {
+func New(config *config.Config) (api *API) {
 	return &API{config: config}
 }
 

@@ -13,11 +13,11 @@ import (
 )
 
 type Bot struct {
-	config  config.Config
+	config  *config.Config
 	session *discordgo.Session
 }
 
-func New(config config.Config) (bot *Bot) {
+func New(config *config.Config) (bot *Bot) {
 	return &Bot{config: config}
 }
 
@@ -30,7 +30,7 @@ func (bot *Bot) Start() {
 		return
 	}
 
-	handler.Setup(bot.session)
+	handler.Setup(bot.config, bot.session)
 
 	bot.setIntents()
 

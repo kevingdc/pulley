@@ -4,6 +4,7 @@ import (
 	"encoding/base64"
 	"log"
 	"os"
+	"strconv"
 
 	"github.com/joho/godotenv"
 )
@@ -16,7 +17,7 @@ type Config struct {
 	Port                    string
 	BaseURL                 string
 	GithubBaseURL           string
-	GithubAppID             string
+	GithubAppID             int64
 	GithubAppWebhookSecret  string
 	GithubClientID          string
 	GithubClientSecret      string
@@ -35,6 +36,11 @@ func Load() *Config {
 		log.Fatal("Error creating temp file for GitHub app private key")
 	}
 
+	githubAppID, err := strconv.ParseInt(os.Getenv("GITHUB_APP_ID"), 10, 64)
+	if err != nil {
+		log.Fatal("Error parsing GitHub App ID")
+	}
+
 	config := &Config{
 		DBUrl: os.Getenv("DB_URL"),
 
@@ -43,7 +49,7 @@ func Load() *Config {
 		Port:                    os.Getenv("PORT"),
 		BaseURL:                 os.Getenv("BASE_URL"),
 		GithubBaseURL:           os.Getenv("GITHUB_BASE_URL"),
-		GithubAppID:             os.Getenv("GITHUB_APP_ID"),
+		GithubAppID:             githubAppID,
 		GithubAppWebhookSecret:  os.Getenv("GITHUB_APP_WEBHOOK_SECRET"),
 		GithubClientID:          os.Getenv("GITHUB_CLIENT_ID"),
 		GithubClientSecret:      os.Getenv("GITHUB_CLIENT_SECRET"),

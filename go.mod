@@ -3,6 +3,7 @@ module github.com/kevingdc/pulley
 go 1.19
 
 require (
+	github.com/bradleyfalzon/ghinstallation/v2 v2.1.0
 	github.com/bwmarrin/discordgo v0.27.0
 	github.com/gofiber/fiber/v2 v2.42.0
 	github.com/google/go-github v17.0.0+incompatible
@@ -13,6 +14,8 @@ require (
 
 require (
 	github.com/andybalholm/brotli v1.0.4 // indirect
+	github.com/golang-jwt/jwt/v4 v4.4.1 // indirect
+	github.com/google/go-github/v45 v45.2.0 // indirect
 	github.com/google/go-querystring v1.1.0 // indirect
 	github.com/google/uuid v1.3.0 // indirect
 	github.com/gorilla/websocket v1.4.2 // indirect

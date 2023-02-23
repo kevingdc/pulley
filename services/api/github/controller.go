@@ -3,23 +3,21 @@ package github
 import (
 	"encoding/json"
 	"log"
-	"net/http"
 	"strconv"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/go-github/github"
 	"github.com/kevingdc/pulley/pkg/config"
-	"github.com/kevingdc/pulley/pkg/messenger"
+	internalhttp "github.com/kevingdc/pulley/pkg/http"
 	"github.com/kevingdc/pulley/pkg/user"
-	"github.com/valyala/fasthttp/fasthttpadaptor"
+	"github.com/kevingdc/pulley/services/api/github/event"
 
 	internalgithub "github.com/kevingdc/pulley/pkg/github"
 )
 
 func handleGithubWebhook(config *config.Config) fiber.Handler {
 	return func(c *fiber.Ctx) error {
-		request := &http.Request{}
-		fasthttpadaptor.ConvertRequest(c.Context(), request, false)
+		request := internalhttp.ToRequest(c)
 
 		payloadBytes, err := github.ValidatePayload(request, []byte(config.GithubAppWebhookSecret))
 		if err != nil {
@@ -27,25 +25,32 @@ func handleGithubWebhook(config *config.Config) fiber.Handler {
 			return fiber.ErrForbidden
 		}
 
-		payload, err := github.ParseWebHook(github.WebHookType(request), payloadBytes)
-
+		eventType := github.WebHookType(request)
+		payload, err := github.ParseWebHook(eventType, payloadBytes)
 		if err != nil {
 			log.Println(err)
 			return fiber.ErrBadRequest
 		}
 		log.Printf("Event type: %T\n", payload)
 
-		messenger.Send(messenger.Message{
-			User: user.User{
-				RepositoryID:   "sample",
-				RepositoryType: user.RepoGitHub,
-				ChatID:         "156032324511727616",
-				ChatType:       user.ChatDiscord,
-			},
-			Content: "Congrats gumana",
-		})
+		client, err := internalgithub.NewClientFromPayload(config, payloadBytes)
+		if err != nil {
+			log.Println(err)
+			return fiber.ErrBadRequest
+		}
 
-		return c.SendString("Hello, World!")
+		res, err := event.Handle(&event.EventPayload{
+			Config:  config,
+			Payload: payload,
+			Github:  client,
+			Type:    event.EventType(eventType),
+		})
+		if err != nil {
+			log.Println(err)
+			return fiber.ErrBadRequest
+		}
+
+		return c.JSON(res)
 	}
 }
 

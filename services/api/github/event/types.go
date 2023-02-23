@@ -8,10 +8,10 @@ import (
 type EventType string
 
 const (
+	EventInstallation             EventType = "installation"
 	EventPullRequest              EventType = "pull_request"
 	EventPullRequestReview        EventType = "pull_request_review"
 	EventPullRequestReviewComment EventType = "pull_request_review_comment"
-	EventInstallation             EventType = "installation"
 )
 
 type EventPayload struct {

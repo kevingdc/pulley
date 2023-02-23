@@ -70,7 +70,9 @@ func handleGithubOAuthRedirect(config *config.Config) fiber.Handler {
 			ChatType:       user.Chat(chatConfig.ChatType),
 		}
 
-		newUser.Create()
+		if !newUser.Exists() {
+			newUser.Create()
+		}
 
 		return c.Redirect("https://github.com/apps/pulley-app/installations/new")
 

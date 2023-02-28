@@ -21,7 +21,7 @@ func resolve(e *EventPayload) EventHandler {
 	case EventInstallation:
 		return &InstallationEventHandler{event: e}
 	case EventPullRequest:
-		return &PullRequestEventHandler{event: e}
+		return NewPREventHandler(e)
 	default:
 		return nil
 	}

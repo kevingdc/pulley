@@ -12,8 +12,6 @@ type InstallationEventHandler struct {
 	event *EventPayload
 }
 
-type Action string
-
 const (
 	ActionInstalled   Action = "created"
 	ActionUninstalled Action = "deleted"

@@ -20,3 +20,5 @@ type EventPayload struct {
 	Github  *github.Client
 	Type    EventType
 }
+
+type Action string

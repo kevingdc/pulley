@@ -26,16 +26,19 @@ func (h *InstallationEventHandler) Handle() (EventHandlerResponse, error) {
 	}
 
 	id := strconv.FormatInt(event.GetSender().GetID(), 10)
-	user, err := user.GetByRepositoryIDAndType(id, user.RepoGitHub)
+	user, err := user.FindOneByRepositoryIDAndType(id, user.RepoGitHub)
 	if err != nil {
 		return nil, err
 	}
 
-	messenger.Send(messenger.Message{
+	err = messenger.Send(messenger.Message{
 		User: user,
 		Content: "Awesome, I'm connected to your GitHub account! " +
 			"I'll notify you when there's an update on your pull requests or you get one to review.",
 	})
+	if err != nil {
+		return nil, err
+	}
 
 	return nil, nil
 }

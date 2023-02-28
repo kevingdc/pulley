@@ -21,12 +21,14 @@ func (d *DiscordMessenger) CanSend(m messenger.Message) bool {
 	return m.User.ChatType == user.ChatDiscord
 }
 
-func (d *DiscordMessenger) Send(m messenger.Message) {
+func (d *DiscordMessenger) Send(m messenger.Message) error {
 	messageToSend := &message.Direct{
 		UserID:  m.User.ChatID,
 		Content: m.Content,
 		Session: d.session,
 	}
 
-	messageToSend.Send()
+	_, err := messageToSend.Send()
+
+	return err
 }

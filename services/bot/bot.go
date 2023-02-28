@@ -26,7 +26,7 @@ func (bot *Bot) Start() {
 	bot.session = session
 
 	if err != nil {
-		log.Fatal("error creating Discord session,", err)
+		log.Fatal("Error creating Discord session,", err)
 		return
 	}
 
@@ -36,7 +36,7 @@ func (bot *Bot) Start() {
 
 	err = bot.session.Open()
 	if err != nil {
-		log.Fatal("error opening connection,", err)
+		log.Fatal("Error opening connection,", err)
 		return
 	}
 

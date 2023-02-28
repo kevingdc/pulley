@@ -44,9 +44,6 @@ func (h *PullRequestEventHandler) Handle() (EventHandlerResponse, error) {
 		return h.handleReviewRequested()
 
 	case ActionPRClosed:
-		if h.pr.GetMerged() {
-			return nil, nil
-		}
 		return h.handleClosed()
 
 	default:

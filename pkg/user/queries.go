@@ -20,7 +20,7 @@ func (user *User) Create() (int64, error) {
 		return 0, fmt.Errorf("User.Create: %v", err)
 	}
 
-	createdUser, _ := GetByID(lastInsertId)
+	createdUser, _ := FindByID(lastInsertId)
 	user.ID = createdUser.ID
 	user.CreatedAt = createdUser.CreatedAt
 	user.UpdatedAt = createdUser.UpdatedAt
@@ -30,7 +30,7 @@ func (user *User) Create() (int64, error) {
 
 func (user *User) Exists() bool {
 	if user.ID != 0 {
-		_, err := GetByID(user.ID)
+		_, err := FindByID(user.ID)
 		return err == nil
 	}
 
@@ -84,51 +84,33 @@ func (user *User) Exists() bool {
 	return err == nil
 }
 
-func GetByID(id int64) (User, error) {
-	// var user User
-
+func FindByID(id int64) (*User, error) {
 	row := db.DB.QueryRow(`
 		SELECT *
 		FROM users
 		WHERE id = $1;
 	`, id)
-	// if err := row.Scan(&user.ID, &user.RepositoryID, &user.RepositoryType, &user.ChatID, &user.ChatType, &user.CreatedAt, &user.UpdatedAt); err != nil {
-	// 	if err == sql.ErrNoRows {
-	// 		return user, fmt.Errorf("getByID(%d): user not found", id)
-	// 	}
-	// 	return user, fmt.Errorf("getByID(%d): %v", id, err)
-	// }
 
-	// return user, nil
 	return scanRow(row)
 }
 
-func GetByRepositoryIDAndType(repositoryID string, repositoryType Repo) (User, error) {
-	// var user User
-
+func FindOneByRepositoryIDAndType(repositoryID string, repositoryType Repo) (*User, error) {
 	row := db.DB.QueryRow(`
 		SELECT *
 		FROM users
 		WHERE repository_id = $1 AND repository_type = $2;
 	`, repositoryID, repositoryType)
-	// if err := row.Scan(&user.ID, &user.RepositoryID, &user.RepositoryType, &user.ChatID, &user.ChatType, &user.CreatedAt, &user.UpdatedAt); err != nil {
-	// 	if err == sql.ErrNoRows {
-	// 		return user, fmt.Errorf("getByRepositoryIDAndType(%q, %q): user not found", repositoryID, repositoryType)
-	// 	}
-	// 	return user, fmt.Errorf("getByRepositoryIDAndType(%q, %q): %v", repositoryID, repositoryType, err)
-	// }
-	// return user, nil
 	return scanRow(row)
 }
 
-func scanRow(row *sql.Row) (User, error) {
+func scanRow(row *sql.Row) (*User, error) {
 	var user User
 	if err := row.Scan(&user.ID, &user.RepositoryID, &user.RepositoryType, &user.ChatID, &user.ChatType, &user.CreatedAt, &user.UpdatedAt); err != nil {
 		if err == sql.ErrNoRows {
-			return user, fmt.Errorf("user not found")
+			return nil, fmt.Errorf("user not found")
 		}
-		return user, fmt.Errorf("getting user: %v", err)
+		return nil, fmt.Errorf("getting user: %v", err)
 	}
 
-	return user, nil
+	return &user, nil
 }

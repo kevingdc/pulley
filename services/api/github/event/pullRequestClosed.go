@@ -17,19 +17,27 @@ func (h *PullRequestEventHandler) handleClosed() (EventHandlerResponse, error) {
 	}
 
 	id := strconv.FormatInt(prOwner.GetID(), 10)
-	user, err := user.GetByRepositoryIDAndType(id, user.RepoGitHub)
+	user, err := user.FindOneByRepositoryIDAndType(id, user.RepoGitHub)
 	if err != nil {
 		return nil, err
 	}
 
 	closerUser := eventSender.GetLogin()
 
-	content := fmt.Sprintf("**Pull Request Closed** *by %s*\n>>> %s", closerUser, h.formattedPRText())
+	action := "Closed"
+	if h.pr.GetMerged() {
+		action = "Merged"
+	}
 
-	messenger.Send(messenger.Message{
+	content := fmt.Sprintf("**Pull Request %s** *by %s*\n>>> %s", action, closerUser, h.formattedPRText())
+
+	err = messenger.Send(messenger.Message{
 		User:    user,
 		Content: content,
 	})
+	if err != nil {
+		return nil, err
+	}
 
 	return nil, nil
 }

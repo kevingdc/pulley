@@ -5,7 +5,7 @@ import (
 	"net/http"
 
 	"github.com/bradleyfalzon/ghinstallation/v2"
-	"github.com/google/go-github/github"
+	"github.com/google/go-github/v50/github"
 	"github.com/kevingdc/pulley/pkg/config"
 )
 

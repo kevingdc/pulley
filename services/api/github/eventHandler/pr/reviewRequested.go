@@ -13,14 +13,14 @@ type ReviewRequestedActionHandler struct {
 }
 
 func (h *ReviewRequestedActionHandler) Handle() (event.HandlerResponse, error) {
-	user, err := h.userToMessage()
-	if err != nil {
+	user := h.userToMessage()
+	if user == nil {
 		return nil, nil
 	}
 
 	content := fmt.Sprintf("**Review Requested**\n>>> %s", h.handler.formattedPRText())
 
-	err = h.handler.messageUser(user, content)
+	err := h.handler.messageUser(user, content)
 	if err != nil {
 		return nil, err
 	}
@@ -28,14 +28,17 @@ func (h *ReviewRequestedActionHandler) Handle() (event.HandlerResponse, error) {
 	return nil, nil
 }
 
-func (h *ReviewRequestedActionHandler) userToMessage() (*app.User, error) {
+func (h *ReviewRequestedActionHandler) userToMessage() *app.User {
 	userService := h.handler.userService
 
-	id := idconv.ToRepoID(h.handler.prEvent.GetRequestedReviewer().GetID())
-	user, err := userService.FindOneByRepositoryIDAndType(id, app.RepoGitHub)
-	if err != nil {
-		return nil, err
+	requestedReviewerID := h.handler.prEvent.GetRequestedReviewer().GetID()
+
+	if requestedReviewerID == h.handler.eventSender().GetID() {
+		return nil
 	}
 
-	return user, err
+	repoID := idconv.ToRepoID(requestedReviewerID)
+	user, _ := userService.FindOneByRepositoryIDAndType(repoID, app.RepoGitHub)
+
+	return user
 }

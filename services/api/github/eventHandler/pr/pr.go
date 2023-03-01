@@ -3,7 +3,7 @@ package pr
 import (
 	"fmt"
 
-	"github.com/google/go-github/github"
+	"github.com/google/go-github/v50/github"
 	"github.com/kevingdc/pulley/pkg/app"
 	"github.com/kevingdc/pulley/pkg/idconv"
 	"github.com/kevingdc/pulley/pkg/messenger"
@@ -54,11 +54,48 @@ func (h *PullRequestEventHandler) resolve() event.Handler {
 		return &ReviewRequestedActionHandler{handler: h}
 
 	case event.ActionPRClosed:
-		return &ClosedActionHandler{handler: h}
+		return &ClosedReopenedActionHandler{handler: h}
+
+	case event.ActionPRReopened:
+		return &ClosedReopenedActionHandler{handler: h}
+
+	case event.ActionPRAssigned:
+		return &AssignedUnassignedActionHandler{handler: h}
+
+	case event.ActionPRUnassigned:
+		return &AssignedUnassignedActionHandler{handler: h}
 
 	default:
 		return nil
 	}
+}
+
+func (h *PullRequestEventHandler) eventSender() *github.User {
+	return h.prEvent.GetSender()
+}
+
+func (h *PullRequestEventHandler) prOwner() *github.User {
+	return h.pr.GetUser()
+}
+
+func (h *PullRequestEventHandler) prOwnerUser() *app.User {
+	id := idconv.ToRepoID(h.prOwner().GetID())
+	u, err := h.userService.FindOneByRepositoryIDAndType(id, app.RepoGitHub)
+	if err != nil {
+		return nil
+	}
+
+	return u
+}
+
+func (h *PullRequestEventHandler) isPROwnerSameAsEventSender() bool {
+	return h.prOwner().GetID() == h.eventSender().GetID()
+}
+
+func (h *PullRequestEventHandler) generateMessageContent(action string) string {
+	actingUser := h.eventSender().GetLogin()
+	prText := h.formattedPRText()
+	return fmt.Sprintf("**Pull Request %s** *by %s*\n>>> %s", action, actingUser, prText)
 }
 
 func (h *PullRequestEventHandler) formattedPRText() string {
@@ -82,7 +119,7 @@ func (h *PullRequestEventHandler) formattedPRText() string {
 	return fmt.Sprintf("%s\n%s\n%s\n\n%s", title, url, changeDetails, body)
 }
 
-func (h *PullRequestEventHandler) getRequestedReviewerUsers() []*app.User {
+func (h *PullRequestEventHandler) requestedReviewerUsers() []*app.User {
 	var reviewers []*app.User
 
 	for _, reviewer := range h.pr.RequestedReviewers {
@@ -98,7 +135,7 @@ func (h *PullRequestEventHandler) getRequestedReviewerUsers() []*app.User {
 	return reviewers
 }
 
-func (h *PullRequestEventHandler) getAssigneeUsers() []*app.User {
+func (h *PullRequestEventHandler) assigneeUsers() []*app.User {
 	var assignees []*app.User
 
 	for _, assignee := range h.pr.Assignees {
@@ -114,10 +151,41 @@ func (h *PullRequestEventHandler) getAssigneeUsers() []*app.User {
 	return assignees
 }
 
+func (h *PullRequestEventHandler) affectedUsers() []*app.User {
+	users := []*app.User{}
+
+	if !h.isPROwnerSameAsEventSender() {
+		user := h.prOwnerUser()
+		users = append(users, user)
+	}
+
+	senderID := h.eventSender().GetID()
+	for _, assignee := range h.pr.Assignees {
+		assigneeID := assignee.GetID()
+		if assigneeID == senderID {
+			continue
+		}
+
+		repoID := idconv.ToRepoID(assigneeID)
+		u, err := h.userService.FindOneByRepositoryIDAndType(repoID, app.RepoGitHub)
+		if err != nil {
+			continue
+		}
+
+		users = append(users, u)
+	}
+
+	return users
+}
+
 func (h *PullRequestEventHandler) messageUsers(u []*app.User, content string) error {
 	g := new(errgroup.Group)
 
 	for _, user := range u {
+		if user == nil {
+			continue
+		}
+
 		user := user
 		g.Go(func() error {
 			return h.messageUser(user, content)

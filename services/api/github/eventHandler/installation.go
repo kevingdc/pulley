@@ -1,7 +1,7 @@
 package eventhandler
 
 import (
-	"github.com/google/go-github/github"
+	"github.com/google/go-github/v50/github"
 	"github.com/kevingdc/pulley/pkg/app"
 	"github.com/kevingdc/pulley/pkg/idconv"
 	"github.com/kevingdc/pulley/pkg/messenger"

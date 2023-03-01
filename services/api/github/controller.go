@@ -5,7 +5,7 @@ import (
 	"log"
 
 	"github.com/gofiber/fiber/v2"
-	"github.com/google/go-github/github"
+	"github.com/google/go-github/v50/github"
 	"github.com/kevingdc/pulley/pkg/app"
 	internalhttp "github.com/kevingdc/pulley/pkg/http"
 	"github.com/kevingdc/pulley/pkg/idconv"

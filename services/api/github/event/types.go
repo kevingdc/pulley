@@ -1,7 +1,7 @@
 package event
 
 import (
-	"github.com/google/go-github/github"
+	"github.com/google/go-github/v50/github"
 	"github.com/kevingdc/pulley/pkg/app"
 )
 
@@ -29,6 +29,9 @@ const (
 
 	ActionPRReviewRequested Action = "review_requested"
 	ActionPRClosed          Action = "closed"
+	ActionPRReopened        Action = "reopened"
+	ActionPRAssigned        Action = "assigned"
+	ActionPRUnassigned      Action = "unassigned"
 )
 
 type HandlerResponse interface{}

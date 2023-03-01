@@ -6,11 +6,11 @@ import (
 )
 
 func (api *API) RegisterRoutes() {
-	apiGroup := api.app.Group("/api")
+	apiGroup := api.server.Group("/api")
 
 	apiGroup.Get("/", func(c *fiber.Ctx) error {
 		return c.SendString("Hello, World!")
 	})
 
-	github.RegisterRoutes(api.config, apiGroup)
+	github.RegisterRoutes(api.app, apiGroup)
 }

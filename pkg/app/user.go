@@ -1,4 +1,4 @@
-package user
+package app
 
 import "time"
 
@@ -27,4 +27,11 @@ type User struct {
 type ChatConfig struct {
 	ChatID   string `json:"chatId"`
 	ChatType string `json:"chatType"`
+}
+
+type UserService interface {
+	Create(user *User) error
+	FindByID(id int64) (*User, error)
+	FindOneByRepositoryIDAndType(repositoryID string, repositoryType Repo) (*User, error)
+	Exists(user *User) bool
 }

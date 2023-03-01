@@ -3,12 +3,12 @@ package messenger
 import (
 	"fmt"
 
-	"github.com/kevingdc/pulley/pkg/user"
+	"github.com/kevingdc/pulley/pkg/app"
 	"golang.org/x/sync/errgroup"
 )
 
 type Message struct {
-	User    *user.User
+	User    *app.User
 	Content string
 }
 
@@ -28,6 +28,10 @@ func Register(handler Messenger) {
 }
 
 func Send(m Message) error {
+	if m.User == nil {
+		return fmt.Errorf("user is nil")
+	}
+
 	g := new(errgroup.Group)
 
 	for _, handler := range messageHandler.handlers {

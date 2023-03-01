@@ -1,36 +1,59 @@
-package user
+package postgres
 
 import (
 	"database/sql"
 	"fmt"
 
-	"github.com/kevingdc/pulley/pkg/db"
+	"github.com/kevingdc/pulley/pkg/app"
 )
 
-func (user *User) Create() (int64, error) {
+type UserService struct {
+	DB *sql.DB
+}
+
+func (s *UserService) Create(user *app.User) error {
 	var lastInsertId int64
 
-	err := db.DB.QueryRow(`
+	err := s.DB.QueryRow(`
 		INSERT INTO users (repository_id, repository_type, chat_id, chat_type)
 		VALUES ($1, $2, $3, $4)
 		RETURNING id;
 	`, user.RepositoryID, user.RepositoryType, user.ChatID, user.ChatType).Scan(&lastInsertId)
 
 	if err != nil {
-		return 0, fmt.Errorf("User.Create: %v", err)
+		return fmt.Errorf("User.Create: %v", err)
 	}
 
-	createdUser, _ := FindByID(lastInsertId)
+	createdUser, _ := s.FindByID(lastInsertId)
 	user.ID = createdUser.ID
 	user.CreatedAt = createdUser.CreatedAt
 	user.UpdatedAt = createdUser.UpdatedAt
 
-	return lastInsertId, nil
+	return nil
 }
 
-func (user *User) Exists() bool {
+func (s *UserService) FindByID(id int64) (*app.User, error) {
+	row := s.DB.QueryRow(`
+		SELECT *
+		FROM users
+		WHERE id = $1;
+	`, id)
+
+	return s.scanRow(row)
+}
+
+func (s *UserService) FindOneByRepositoryIDAndType(repositoryID string, repositoryType app.Repo) (*app.User, error) {
+	row := s.DB.QueryRow(`
+	SELECT *
+	FROM users
+	WHERE repository_id = $1 AND repository_type = $2;
+`, repositoryID, repositoryType)
+	return s.scanRow(row)
+}
+
+func (s *UserService) Exists(user *app.User) bool {
 	if user.ID != 0 {
-		_, err := FindByID(user.ID)
+		_, err := s.FindByID(user.ID)
 		return err == nil
 	}
 
@@ -79,32 +102,14 @@ func (user *User) Exists() bool {
 		WHERE %s;
 	`, whereConditions)
 
-	row := db.DB.QueryRow(query, values...)
-	_, err := scanRow(row)
+	row := s.DB.QueryRow(query, values...)
+	_, err := s.scanRow(row)
 	return err == nil
+
 }
 
-func FindByID(id int64) (*User, error) {
-	row := db.DB.QueryRow(`
-		SELECT *
-		FROM users
-		WHERE id = $1;
-	`, id)
-
-	return scanRow(row)
-}
-
-func FindOneByRepositoryIDAndType(repositoryID string, repositoryType Repo) (*User, error) {
-	row := db.DB.QueryRow(`
-		SELECT *
-		FROM users
-		WHERE repository_id = $1 AND repository_type = $2;
-	`, repositoryID, repositoryType)
-	return scanRow(row)
-}
-
-func scanRow(row *sql.Row) (*User, error) {
-	var user User
+func (s *UserService) scanRow(row *sql.Row) (*app.User, error) {
+	var user app.User
 	if err := row.Scan(&user.ID, &user.RepositoryID, &user.RepositoryType, &user.ChatID, &user.ChatType, &user.CreatedAt, &user.UpdatedAt); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, fmt.Errorf("user not found")

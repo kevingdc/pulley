@@ -2,12 +2,12 @@ package github
 
 import (
 	"github.com/gofiber/fiber/v2"
-	"github.com/kevingdc/pulley/pkg/config"
+	"github.com/kevingdc/pulley/pkg/app"
 )
 
-func RegisterRoutes(config *config.Config, router fiber.Router) {
+func RegisterRoutes(app *app.App, router fiber.Router) {
 	apiGroup := router.Group("/github")
 
-	apiGroup.Post("/webhook", handleGithubWebhook(config))
-	apiGroup.Get("/oauth-redirect", handleGithubOAuthRedirect(config))
+	apiGroup.Post("/webhook", handleGithubWebhook(app))
+	apiGroup.Get("/oauth-redirect", handleGithubOAuthRedirect(app))
 }

@@ -1,11 +1,10 @@
 package bot
 
 import (
-	"fmt"
 	"log"
 
 	"github.com/bwmarrin/discordgo"
-	"github.com/kevingdc/pulley/pkg/config"
+	"github.com/kevingdc/pulley/pkg/app"
 	"github.com/kevingdc/pulley/pkg/messenger"
 	"github.com/kevingdc/pulley/services/bot/command"
 	"github.com/kevingdc/pulley/services/bot/handler"
@@ -13,16 +12,17 @@ import (
 )
 
 type Bot struct {
-	config  *config.Config
+	app     *app.App
 	session *discordgo.Session
 }
 
-func New(config *config.Config) (bot *Bot) {
-	return &Bot{config: config}
+func New(app *app.App) (bot *Bot) {
+	return &Bot{app: app}
 }
 
 func (bot *Bot) Start() {
-	session, err := discordgo.New("Bot " + bot.config.BotToken)
+	config := bot.app.Config
+	session, err := discordgo.New("Bot " + config.BotToken)
 	bot.session = session
 
 	if err != nil {
@@ -30,7 +30,7 @@ func (bot *Bot) Start() {
 		return
 	}
 
-	handler.Setup(bot.config, bot.session)
+	handler.Setup(config, bot.session)
 
 	bot.setIntents()
 
@@ -43,7 +43,7 @@ func (bot *Bot) Start() {
 	command.Setup(bot.session)
 	bot.registerMessenger()
 
-	fmt.Println("The bot is now running.")
+	log.Println("The bot is now running.")
 }
 
 func (bot *Bot) Stop() {

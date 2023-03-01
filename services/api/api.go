@@ -4,27 +4,27 @@ import (
 	"log"
 
 	"github.com/gofiber/fiber/v2"
-	"github.com/kevingdc/pulley/pkg/config"
+	"github.com/kevingdc/pulley/pkg/app"
 )
 
 type API struct {
-	config *config.Config
-	app    *fiber.App
+	app    *app.App
+	server *fiber.App
 }
 
-func New(config *config.Config) (api *API) {
-	return &API{config: config}
+func New(app *app.App) (api *API) {
+	return &API{app: app}
 }
 
 func (api *API) Start() {
 	app := fiber.New()
-	api.app = app
+	api.server = app
 
 	api.RegisterRoutes()
 
-	log.Fatal(api.app.Listen(":" + api.config.Port))
+	log.Fatal(api.server.Listen(":" + api.app.Config.Port))
 }
 
 func (api *API) Stop() {
-	api.app.Shutdown()
+	api.server.Shutdown()
 }

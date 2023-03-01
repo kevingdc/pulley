@@ -5,8 +5,9 @@ import (
 	"os/signal"
 	"syscall"
 
+	"github.com/kevingdc/pulley/pkg/app"
 	"github.com/kevingdc/pulley/pkg/config"
-	"github.com/kevingdc/pulley/pkg/db"
+	"github.com/kevingdc/pulley/pkg/db/postgres"
 	"github.com/kevingdc/pulley/services/api"
 	"github.com/kevingdc/pulley/services/bot"
 )
@@ -14,14 +15,19 @@ import (
 func main() {
 	config := config.Load()
 
-	db.Connect(config)
-	defer db.Close()
+	postgres.Connect(config.DBURL)
+	defer postgres.Close()
 
-	bot := bot.New(config)
+	newApp := &app.App{
+		Config:      config,
+		UserService: &postgres.UserService{DB: postgres.DB},
+	}
+
+	bot := bot.New(newApp)
 	bot.Start()
 	defer bot.Stop()
 
-	api := api.New(config)
+	api := api.New(newApp)
 	go api.Start()
 	defer api.Stop()
 

@@ -1,17 +1,16 @@
-package db
+package postgres
 
 import (
 	"database/sql"
 	"log"
 
-	"github.com/kevingdc/pulley/pkg/config"
 	_ "github.com/lib/pq"
 )
 
 var DB *sql.DB
 
-func Connect(config *config.Config) {
-	db, err := sql.Open("postgres", config.DBUrl)
+func Connect(dbURL string) {
+	db, err := sql.Open("postgres", dbURL)
 	if err != nil {
 		log.Fatal(err)
 	}

@@ -5,8 +5,9 @@ import (
 	"fmt"
 
 	"github.com/bwmarrin/discordgo"
+	"github.com/kevingdc/pulley/pkg/app"
 	"github.com/kevingdc/pulley/pkg/config"
-	"github.com/kevingdc/pulley/pkg/user"
+
 	"github.com/kevingdc/pulley/services/bot/interaction"
 	"github.com/kevingdc/pulley/services/bot/message"
 )
@@ -44,9 +45,9 @@ func (c *ConnectCommand) generateConnectLink(userID string) string {
 	clientId := c.config.GithubClientID
 	state := c.config.GithubOAuthState
 
-	chatConfig, _ := json.Marshal(user.ChatConfig{
+	chatConfig, _ := json.Marshal(app.ChatConfig{
 		ChatID:   userID,
-		ChatType: string(user.ChatDiscord),
+		ChatType: string(app.ChatDiscord),
 	})
 
 	redirectUri := fmt.Sprintf("%s/api/github/oauth-redirect?chat_config=%s", c.config.BaseURL, chatConfig)

@@ -6,16 +6,19 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/go-github/github"
-	"github.com/kevingdc/pulley/pkg/config"
+	"github.com/kevingdc/pulley/pkg/app"
 	internalhttp "github.com/kevingdc/pulley/pkg/http"
-	"github.com/kevingdc/pulley/pkg/user"
+	"github.com/kevingdc/pulley/pkg/idconv"
+
 	"github.com/kevingdc/pulley/services/api/github/event"
+	eventhandler "github.com/kevingdc/pulley/services/api/github/eventHandler"
 
 	internalgithub "github.com/kevingdc/pulley/pkg/github"
 )
 
-func handleGithubWebhook(config *config.Config) fiber.Handler {
+func handleGithubWebhook(app *app.App) fiber.Handler {
 	return func(c *fiber.Ctx) error {
+		config := app.Config
 		request := internalhttp.ToRequest(c)
 
 		payloadBytes, err := github.ValidatePayload(request, []byte(config.GithubAppWebhookSecret))
@@ -30,7 +33,6 @@ func handleGithubWebhook(config *config.Config) fiber.Handler {
 			log.Println(err)
 			return fiber.ErrBadRequest
 		}
-		log.Printf("Event type: %T\n", payload)
 
 		client, err := internalgithub.NewClientFromPayload(config, payloadBytes)
 		if err != nil {
@@ -38,11 +40,11 @@ func handleGithubWebhook(config *config.Config) fiber.Handler {
 			return fiber.ErrBadRequest
 		}
 
-		res, err := event.Handle(&event.EventPayload{
-			Config:  config,
+		res, err := eventhandler.Handle(&event.Payload{
+			App:     app,
 			Payload: payload,
 			Github:  client,
-			Type:    event.EventType(eventType),
+			Type:    event.Type(eventType),
 		})
 		if err != nil {
 			log.Println(err)
@@ -53,8 +55,11 @@ func handleGithubWebhook(config *config.Config) fiber.Handler {
 	}
 }
 
-func handleGithubOAuthRedirect(config *config.Config) fiber.Handler {
+func handleGithubOAuthRedirect(a *app.App) fiber.Handler {
 	return func(c *fiber.Ctx) error {
+		config := a.Config
+		userService := a.UserService
+
 		if c.Query("state") != config.GithubOAuthState {
 			return fiber.ErrForbidden
 		}
@@ -64,20 +69,20 @@ func handleGithubOAuthRedirect(config *config.Config) fiber.Handler {
 			return fiber.ErrForbidden
 		}
 
-		var chatConfig user.ChatConfig
+		var chatConfig app.ChatConfig
 		json.Unmarshal([]byte(c.Query("chat_config")), &chatConfig)
 
 		// TODO: Check if user with discord id already exists and also check if user with github id already exists
 
-		newUser := &user.User{
-			RepositoryID:   user.ToRepoID(githubUser.ID),
-			RepositoryType: user.RepoGitHub,
+		newUser := &app.User{
+			RepositoryID:   idconv.ToRepoID(githubUser.ID),
+			RepositoryType: app.RepoGitHub,
 			ChatID:         chatConfig.ChatID,
-			ChatType:       user.Chat(chatConfig.ChatType),
+			ChatType:       app.Chat(chatConfig.ChatType),
 		}
 
-		if !newUser.Exists() {
-			newUser.Create()
+		if !userService.Exists(newUser) {
+			userService.Create(newUser)
 		}
 
 		return c.Redirect("https://github.com/apps/pulley-app/installations/new")

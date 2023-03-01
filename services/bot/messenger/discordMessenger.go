@@ -2,8 +2,9 @@ package messenger
 
 import (
 	"github.com/bwmarrin/discordgo"
+	"github.com/kevingdc/pulley/pkg/app"
 	"github.com/kevingdc/pulley/pkg/messenger"
-	"github.com/kevingdc/pulley/pkg/user"
+
 	"github.com/kevingdc/pulley/services/bot/message"
 )
 
@@ -18,7 +19,7 @@ func New(session *discordgo.Session) *DiscordMessenger {
 }
 
 func (d *DiscordMessenger) CanSend(m messenger.Message) bool {
-	return m.User.ChatType == user.ChatDiscord
+	return m.User.ChatType == app.ChatDiscord
 }
 
 func (d *DiscordMessenger) Send(m messenger.Message) error {

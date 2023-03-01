@@ -2,23 +2,37 @@ package event
 
 import (
 	"github.com/google/go-github/github"
-	"github.com/kevingdc/pulley/pkg/config"
+	"github.com/kevingdc/pulley/pkg/app"
 )
 
-type EventType string
+type Type string
 
 const (
-	EventInstallation             EventType = "installation"
-	EventPullRequest              EventType = "pull_request"
-	EventPullRequestReview        EventType = "pull_request_review"
-	EventPullRequestReviewComment EventType = "pull_request_review_comment"
+	EventInstallation             Type = "installation"
+	EventPullRequest              Type = "pull_request"
+	EventPullRequestReview        Type = "pull_request_review"
+	EventPullRequestReviewComment Type = "pull_request_review_comment"
 )
 
-type EventPayload struct {
-	Config  *config.Config
+type Payload struct {
+	App     *app.App
 	Payload interface{}
 	Github  *github.Client
-	Type    EventType
+	Type    Type
 }
 
 type Action string
+
+const (
+	ActionInstalled   Action = "created"
+	ActionUninstalled Action = "deleted"
+
+	ActionPRReviewRequested Action = "review_requested"
+	ActionPRClosed          Action = "closed"
+)
+
+type HandlerResponse interface{}
+
+type Handler interface {
+	Handle() (HandlerResponse, error)
+}

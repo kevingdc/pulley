@@ -2,9 +2,7 @@ package event
 
 import (
 	"fmt"
-	"strconv"
 
-	"github.com/kevingdc/pulley/pkg/messenger"
 	"github.com/kevingdc/pulley/pkg/user"
 )
 
@@ -12,32 +10,29 @@ func (h *PullRequestEventHandler) handleClosed() (EventHandlerResponse, error) {
 	eventSender := h.prEvent.GetSender()
 	prOwner := h.pr.GetUser()
 
-	if didOwnerClosePR := eventSender.GetID() == prOwner.GetID(); didOwnerClosePR {
-		return nil, nil
+	usersToMessage := []*user.User{}
+
+	if didOwnerClosePR := eventSender.GetID() == prOwner.GetID(); !didOwnerClosePR {
+		id := user.ToRepoID(prOwner.GetID())
+		user, err := user.FindOneByRepositoryIDAndType(id, user.RepoGitHub)
+		if err != nil {
+			return nil, err
+		}
+
+		usersToMessage = append(usersToMessage, user)
 	}
 
-	id := strconv.FormatInt(prOwner.GetID(), 10)
-	user, err := user.FindOneByRepositoryIDAndType(id, user.RepoGitHub)
-	if err != nil {
-		return nil, err
-	}
-
-	closerUser := eventSender.GetLogin()
+	usersToMessage = append(usersToMessage, h.getAssigneeUsers()...)
 
 	action := "Closed"
 	if h.pr.GetMerged() {
 		action = "Merged"
 	}
+	closerUser := eventSender.GetLogin()
 
 	content := fmt.Sprintf("**Pull Request %s** *by %s*\n>>> %s", action, closerUser, h.formattedPRText())
 
-	err = messenger.Send(messenger.Message{
-		User:    user,
-		Content: content,
-	})
-	if err != nil {
-		return nil, err
-	}
+	h.messageUsers(usersToMessage, content)
 
 	return nil, nil
 }

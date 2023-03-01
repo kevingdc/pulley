@@ -4,6 +4,9 @@ import (
 	"fmt"
 
 	"github.com/google/go-github/github"
+	"github.com/kevingdc/pulley/pkg/messenger"
+	"github.com/kevingdc/pulley/pkg/user"
+	"golang.org/x/sync/errgroup"
 )
 
 type PullRequestActionHandler interface {
@@ -93,4 +96,61 @@ func (h *PullRequestEventHandler) formattedPRText() string {
 	body := h.pr.GetBody()
 
 	return fmt.Sprintf("%s\n%s\n%s\n\n%s", title, url, changeDetails, body)
+}
+
+func (h *PullRequestEventHandler) getRequestedReviewerUsers() []*user.User {
+	var reviewers []*user.User
+
+	for _, reviewer := range h.pr.RequestedReviewers {
+		id := user.ToRepoID(reviewer.GetID())
+		u, err := user.FindOneByRepositoryIDAndType(id, user.RepoGitHub)
+		if err != nil {
+			continue
+		}
+
+		reviewers = append(reviewers, u)
+	}
+
+	return reviewers
+}
+
+func (h *PullRequestEventHandler) getAssigneeUsers() []*user.User {
+	var assignees []*user.User
+
+	for _, assignee := range h.pr.Assignees {
+		id := user.ToRepoID(assignee.GetID())
+		u, err := user.FindOneByRepositoryIDAndType(id, user.RepoGitHub)
+		if err != nil {
+			continue
+		}
+
+		assignees = append(assignees, u)
+	}
+
+	return assignees
+}
+
+func (h *PullRequestEventHandler) messageUsers(u []*user.User, content string) error {
+	g := new(errgroup.Group)
+
+	for _, user := range u {
+		user := user
+		g.Go(func() error {
+			return h.messageUser(user, content)
+		})
+	}
+
+	return g.Wait()
+}
+
+func (h *PullRequestEventHandler) messageUser(u *user.User, content string) error {
+	err := messenger.Send(messenger.Message{
+		User:    u,
+		Content: content,
+	})
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

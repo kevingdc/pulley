@@ -1,8 +1,6 @@
 package event
 
 import (
-	"strconv"
-
 	"github.com/google/go-github/github"
 	"github.com/kevingdc/pulley/pkg/messenger"
 	"github.com/kevingdc/pulley/pkg/user"
@@ -25,7 +23,7 @@ func (h *InstallationEventHandler) Handle() (EventHandlerResponse, error) {
 		return nil, nil
 	}
 
-	id := strconv.FormatInt(event.GetSender().GetID(), 10)
+	id := user.ToRepoID(event.GetSender().GetID())
 	user, err := user.FindOneByRepositoryIDAndType(id, user.RepoGitHub)
 	if err != nil {
 		return nil, err

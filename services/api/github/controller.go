@@ -3,7 +3,6 @@ package github
 import (
 	"encoding/json"
 	"log"
-	"strconv"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/go-github/github"
@@ -68,8 +67,10 @@ func handleGithubOAuthRedirect(config *config.Config) fiber.Handler {
 		var chatConfig user.ChatConfig
 		json.Unmarshal([]byte(c.Query("chat_config")), &chatConfig)
 
+		// TODO: Check if user with discord id already exists and also check if user with github id already exists
+
 		newUser := &user.User{
-			RepositoryID:   strconv.FormatInt(githubUser.ID, 10),
+			RepositoryID:   user.ToRepoID(githubUser.ID),
 			RepositoryType: user.RepoGitHub,
 			ChatID:         chatConfig.ChatID,
 			ChatType:       user.Chat(chatConfig.ChatType),

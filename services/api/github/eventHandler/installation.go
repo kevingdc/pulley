@@ -12,6 +12,10 @@ type InstallationEventHandler struct {
 	event *event.Payload
 }
 
+func NewInstallationEventHandler(e *event.Payload) *InstallationEventHandler {
+	return &InstallationEventHandler{event: e}
+}
+
 func (h *InstallationEventHandler) Handle() (event.HandlerResponse, error) {
 	userService := h.event.App.UserService
 
@@ -28,11 +32,10 @@ func (h *InstallationEventHandler) Handle() (event.HandlerResponse, error) {
 		return nil, err
 	}
 
-	err = messenger.Send(messenger.Message{
-		User: user,
-		Content: "Awesome, I'm connected to your GitHub account! " +
-			"I'll notify you when there's an update on your pull requests or you get one to review.",
-	})
+	message := app.NewSimpleMessage(user, "Awesome, I'm connected to your GitHub account! "+
+		"I'll notify you when there's an update on your pull requests or you get one to review.")
+
+	err = messenger.Send(message)
 	if err != nil {
 		return nil, err
 	}

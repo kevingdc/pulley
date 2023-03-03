@@ -5,6 +5,19 @@ import (
 	"github.com/kevingdc/pulley/pkg/app"
 )
 
+type Payload struct {
+	App     *app.App
+	Payload interface{}
+	Github  *github.Client
+	Type    Type
+}
+
+type HandlerResponse interface{}
+
+type Handler interface {
+	Handle() (HandlerResponse, error)
+}
+
 type Type string
 
 const (
@@ -13,13 +26,6 @@ const (
 	EventPullRequestReview        Type = "pull_request_review"
 	EventPullRequestReviewComment Type = "pull_request_review_comment"
 )
-
-type Payload struct {
-	App     *app.App
-	Payload interface{}
-	Github  *github.Client
-	Type    Type
-}
 
 type Action string
 
@@ -34,8 +40,10 @@ const (
 	ActionPRUnassigned      Action = "unassigned"
 )
 
-type HandlerResponse interface{}
+type ReviewState string
 
-type Handler interface {
-	Handle() (HandlerResponse, error)
-}
+const (
+	ReviewDismissed        ReviewState = "dismissed"
+	ReviewApproved         ReviewState = "approved"
+	ReviewChangesRequested ReviewState = "changes_requested"
+)

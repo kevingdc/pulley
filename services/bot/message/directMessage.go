@@ -2,11 +2,12 @@ package message
 
 import (
 	"github.com/bwmarrin/discordgo"
+	"github.com/kevingdc/pulley/pkg/app"
 )
 
 type Direct struct {
 	UserID  string
-	Content string
+	Content *app.MessageContent
 	Session *discordgo.Session
 }
 

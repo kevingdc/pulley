@@ -7,14 +7,9 @@ import (
 	"golang.org/x/sync/errgroup"
 )
 
-type Message struct {
-	User    *app.User
-	Content string
-}
-
 type Messenger interface {
-	CanSend(m Message) bool
-	Send(m Message) error
+	CanSend(m *app.Message) bool
+	Send(m *app.Message) error
 }
 
 var messageHandler messenger
@@ -27,7 +22,7 @@ func Register(handler Messenger) {
 	messageHandler.handlers = append(messageHandler.handlers, handler)
 }
 
-func Send(m Message) error {
+func Send(m *app.Message) error {
 	if m.User == nil {
 		return fmt.Errorf("user is nil")
 	}

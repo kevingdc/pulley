@@ -1,8 +1,6 @@
 package pr
 
 import (
-	"fmt"
-
 	"github.com/kevingdc/pulley/pkg/app"
 	"github.com/kevingdc/pulley/pkg/idconv"
 	"github.com/kevingdc/pulley/services/api/github/event"
@@ -18,9 +16,7 @@ func (h *ReviewRequestedActionHandler) Handle() (event.HandlerResponse, error) {
 		return nil, nil
 	}
 
-	content := fmt.Sprintf("**Review Requested**\n>>> %s", h.handler.formattedPRText())
-
-	err := h.handler.messageUser(user, content)
+	err := h.handler.messageUser(user, h.handler.generateMessageContent("Review Requested", app.ColorYellow))
 	if err != nil {
 		return nil, err
 	}

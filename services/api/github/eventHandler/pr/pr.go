@@ -13,12 +13,12 @@ import (
 
 type PullRequestEventHandler struct {
 	event       *event.Payload
+	app         *app.App
+	userService app.UserService
 	action      event.Action
 	prEvent     *github.PullRequestEvent
 	pr          *github.PullRequest
 	repo        *github.Repository
-	app         *app.App
-	userService app.UserService
 }
 
 func New(e *event.Payload) *PullRequestEventHandler {
@@ -92,16 +92,9 @@ func (h *PullRequestEventHandler) isPROwnerSameAsEventSender() bool {
 	return h.prOwner().GetID() == h.eventSender().GetID()
 }
 
-func (h *PullRequestEventHandler) generateMessageContent(action string) string {
-	actingUser := h.eventSender().GetLogin()
-	prText := h.formattedPRText()
-	return fmt.Sprintf("**Pull Request %s** *by %s*\n>>> %s", action, actingUser, prText)
-}
-
-func (h *PullRequestEventHandler) formattedPRText() string {
+func (h *PullRequestEventHandler) generateMessageContent(actionLabel string, color app.Color) *app.MessageContent {
+	actingUser := h.eventSender()
 	pr := h.pr
-	title := fmt.Sprintf("__**#%d %s**__", pr.GetNumber(), pr.GetTitle())
-	url := h.pr.GetHTMLURL()
 
 	commitLabel := "commit"
 	if pr.GetCommits() > 1 {
@@ -112,11 +105,21 @@ func (h *PullRequestEventHandler) formattedPRText() string {
 	if pr.GetChangedFiles() > 1 {
 		fileLabel = "files"
 	}
-	changeDetails := fmt.Sprintf("*%d %s, %d %s changed*", pr.GetCommits(), commitLabel, pr.GetChangedFiles(), fileLabel)
 
-	body := h.pr.GetBody()
-
-	return fmt.Sprintf("%s\n%s\n%s\n\n%s", title, url, changeDetails, body)
+	return &app.MessageContent{
+		URL:       pr.GetHTMLURL(),
+		Title:     fmt.Sprintf("#%d %s", pr.GetNumber(), pr.GetTitle()),
+		Subtitle:  fmt.Sprintf("*%d %s, %d %s changed*", pr.GetCommits(), commitLabel, pr.GetChangedFiles(), fileLabel),
+		Body:      pr.GetBody(),
+		Color:     color,
+		Thumbnail: pr.GetUser().GetAvatarURL(),
+		Author: &app.MessageAuthor{
+			Name: actingUser.GetLogin(),
+			URL:  actingUser.GetHTMLURL(),
+		},
+		Header: fmt.Sprintf("PR %s", actionLabel),
+		Footer: h.repo.GetFullName(),
+	}
 }
 
 func (h *PullRequestEventHandler) requestedReviewerUsers() []*app.User {
@@ -178,7 +181,7 @@ func (h *PullRequestEventHandler) affectedUsers() []*app.User {
 	return users
 }
 
-func (h *PullRequestEventHandler) messageUsers(u []*app.User, content string) error {
+func (h *PullRequestEventHandler) messageUsers(u []*app.User, content *app.MessageContent) error {
 	g := new(errgroup.Group)
 
 	for _, user := range u {
@@ -195,11 +198,8 @@ func (h *PullRequestEventHandler) messageUsers(u []*app.User, content string) er
 	return g.Wait()
 }
 
-func (h *PullRequestEventHandler) messageUser(u *app.User, content string) error {
-	err := messenger.Send(messenger.Message{
-		User:    u,
-		Content: content,
-	})
+func (h *PullRequestEventHandler) messageUser(u *app.User, content *app.MessageContent) error {
+	err := messenger.Send(&app.Message{User: u, Content: content})
 	if err != nil {
 		return err
 	}

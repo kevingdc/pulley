@@ -3,7 +3,6 @@ package messenger
 import (
 	"github.com/bwmarrin/discordgo"
 	"github.com/kevingdc/pulley/pkg/app"
-	"github.com/kevingdc/pulley/pkg/messenger"
 
 	"github.com/kevingdc/pulley/services/bot/message"
 )
@@ -18,11 +17,11 @@ func New(session *discordgo.Session) *DiscordMessenger {
 	}
 }
 
-func (d *DiscordMessenger) CanSend(m messenger.Message) bool {
+func (d *DiscordMessenger) CanSend(m *app.Message) bool {
 	return m.User.ChatType == app.ChatDiscord
 }
 
-func (d *DiscordMessenger) Send(m messenger.Message) error {
+func (d *DiscordMessenger) Send(m *app.Message) error {
 	messageToSend := &message.Direct{
 		UserID:  m.User.ChatID,
 		Content: m.Content,

@@ -7,8 +7,8 @@ import (
 )
 
 const (
-	SETUP_COMMAND   = "setup"
-	CONNECT_COMMAND = "connect"
+	CmdSetup   = "setup"
+	CmdConnect = "connect"
 )
 
 var (
@@ -16,12 +16,12 @@ var (
 
 	commands = []*discordgo.ApplicationCommand{
 		{
-			Name:                     SETUP_COMMAND,
+			Name:                     CmdSetup,
 			Description:              "Connect your Discord server to a GitHub repository",
 			DefaultMemberPermissions: &defaultSetupPermission,
 		},
 		{
-			Name:        CONNECT_COMMAND,
+			Name:        CmdConnect,
 			Description: "Connect your GitHub account to your Discord account",
 		},
 	}
@@ -29,7 +29,7 @@ var (
 	registeredCommands = make([]*discordgo.ApplicationCommand, len(commands))
 )
 
-func Setup(session *discordgo.Session) {
+func RegisterAll(session *discordgo.Session) {
 	for i, command := range commands {
 		createdCommand, err := session.ApplicationCommandCreate(session.State.User.ID, "", command)
 		if err != nil {

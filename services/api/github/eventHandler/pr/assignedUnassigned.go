@@ -16,7 +16,7 @@ func (h *AssignedUnassignedActionHandler) Handle() (event.HandlerResponse, error
 		return nil, nil
 	}
 
-	err := h.handler.messageUser(user, h.handler.generateMessageContent(h.actionLabel()))
+	err := h.handler.messageUser(user, h.generateMessageContent())
 	if err != nil {
 		return nil, err
 	}
@@ -37,6 +37,28 @@ func (h *AssignedUnassignedActionHandler) userToMessage() *app.User {
 	user, _ := userService.FindOneByRepositoryIDAndType(repoID, app.RepoGitHub)
 
 	return user
+}
+
+func (h *AssignedUnassignedActionHandler) generateMessageContent() *app.MessageContent {
+	var (
+		actionLabel string
+		color       app.Color
+	)
+
+	switch h.handler.action {
+	case event.ActionPRAssigned:
+		actionLabel = "Assigned"
+		color = app.ColorCyan
+
+	case event.ActionPRUnassigned:
+		actionLabel = "Unassigned"
+		color = app.ColorGrey
+
+	default:
+		return nil
+	}
+
+	return h.handler.generateMessageContent(actionLabel, color)
 }
 
 func (h *AssignedUnassignedActionHandler) actionLabel() string {

@@ -40,7 +40,7 @@ func (bot *Bot) Start() {
 		return
 	}
 
-	command.Setup(bot.session)
+	command.RegisterAll(bot.session)
 	bot.registerMessenger()
 
 	log.Println("The bot is now running.")

@@ -6,7 +6,7 @@ import (
 )
 
 type CommandHandler interface {
-	HandleCommand(session *discordgo.Session, interaction *discordgo.InteractionCreate)
+	Handle(session *discordgo.Session, interaction *discordgo.InteractionCreate)
 }
 
 func Handle(session *discordgo.Session, interaction *discordgo.InteractionCreate, config *config.Config) {
@@ -15,15 +15,15 @@ func Handle(session *discordgo.Session, interaction *discordgo.InteractionCreate
 	if commandHandler == nil {
 		return
 	}
-	commandHandler.HandleCommand(session, interaction)
+	commandHandler.Handle(session, interaction)
 }
 
 func Resolve(commandName string, config *config.Config) CommandHandler {
 	switch commandName {
-	case SETUP_COMMAND:
-		return &SetupCommand{}
-	case CONNECT_COMMAND:
-		return &ConnectCommand{config: config}
+	case CmdSetup:
+		return &Setup{}
+	case CmdConnect:
+		return &Connect{config: config}
 	default:
 		return nil
 	}

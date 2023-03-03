@@ -1,6 +1,7 @@
 package pr
 
 import (
+	"github.com/kevingdc/pulley/pkg/app"
 	"github.com/kevingdc/pulley/services/api/github/event"
 )
 
@@ -14,7 +15,7 @@ func (h *ClosedReopenedActionHandler) Handle() (event.HandlerResponse, error) {
 		return nil, nil
 	}
 
-	err := h.handler.messageUsers(usersToMessage, h.handler.generateMessageContent(h.actionLabel()))
+	err := h.handler.messageUsers(usersToMessage, h.generateMessageContent())
 	if err != nil {
 		return nil, err
 	}
@@ -22,13 +23,25 @@ func (h *ClosedReopenedActionHandler) Handle() (event.HandlerResponse, error) {
 	return nil, nil
 }
 
-func (h *ClosedReopenedActionHandler) actionLabel() string {
+func (h *ClosedReopenedActionHandler) generateMessageContent() *app.MessageContent {
+	var (
+		actionLabel string
+		color       app.Color
+	)
+
 	switch {
 	case h.handler.action == event.ActionPRReopened:
-		return "Reopened"
+		actionLabel = "Reopened"
+		color = app.ColorBlue
+
 	case h.handler.pr.GetMerged():
-		return "Merged"
+		actionLabel = "Merged"
+		color = app.ColorPurple
+
 	default:
-		return "Closed"
+		actionLabel = "Closed"
+		color = app.ColorRed
 	}
+
+	return h.handler.generateMessageContent(actionLabel, color)
 }

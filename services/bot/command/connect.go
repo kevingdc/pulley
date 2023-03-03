@@ -12,11 +12,11 @@ import (
 	"github.com/kevingdc/pulley/services/bot/message"
 )
 
-type ConnectCommand struct {
+type Connect struct {
 	config *config.Config
 }
 
-func (c *ConnectCommand) HandleCommand(session *discordgo.Session, i *discordgo.InteractionCreate) {
+func (c *Connect) Handle(session *discordgo.Session, i *discordgo.InteractionCreate) {
 	responder := interaction.Responder{Session: session, Interaction: i.Interaction}
 
 	if wasSentAsDM := i.Member == nil; wasSentAsDM {
@@ -28,7 +28,7 @@ func (c *ConnectCommand) HandleCommand(session *discordgo.Session, i *discordgo.
 
 	messageToSend := &message.Direct{
 		UserID:  i.Member.User.ID,
-		Content: "Hey there! To connect to your GitHub account, click on the link below, press Authorize, and select the organization you want to connect to.\nLink: " + c.generateConnectLink(userID),
+		Content: app.NewSimpleMessageContent("Hey there! To connect to your GitHub account, click on the link below, press Authorize, and select the organization you want to connect to.\nLink: " + c.generateConnectLink(userID)),
 		Session: session,
 	}
 
@@ -41,7 +41,7 @@ func (c *ConnectCommand) HandleCommand(session *discordgo.Session, i *discordgo.
 	responder.SendSentInstructionsResponse()
 }
 
-func (c *ConnectCommand) generateConnectLink(userID string) string {
+func (c *Connect) generateConnectLink(userID string) string {
 	clientId := c.config.GithubClientID
 	state := c.config.GithubOAuthState
 

@@ -18,7 +18,7 @@ func Handle(e *event.Payload) (event.HandlerResponse, error) {
 func resolve(e *event.Payload) event.Handler {
 	switch e.Type {
 	case event.EventInstallation:
-		return &InstallationEventHandler{event: e}
+		return NewInstallationEventHandler(e)
 	case event.EventPullRequest:
 		return pr.New(e)
 	default:

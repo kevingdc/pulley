@@ -114,8 +114,9 @@ func (h *PullRequestEventHandler) generateMessageContent(actionLabel string, col
 		Color:     color,
 		Thumbnail: pr.GetUser().GetAvatarURL(),
 		Author: &app.MessageAuthor{
-			Name: actingUser.GetLogin(),
-			URL:  actingUser.GetHTMLURL(),
+			Name:      actingUser.GetLogin(),
+			URL:       actingUser.GetHTMLURL(),
+			AvatarURL: actingUser.GetAvatarURL(),
 		},
 		Header: fmt.Sprintf("PR %s", actionLabel),
 		Footer: h.repo.GetFullName(),

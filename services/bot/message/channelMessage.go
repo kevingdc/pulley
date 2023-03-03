@@ -61,8 +61,9 @@ func (m *Channel) toDiscordMessage() *discordgo.MessageSend {
 				Text: content.Footer,
 			},
 			Author: &discordgo.MessageEmbedAuthor{
-				URL:  content.Author.URL,
-				Name: content.Author.Name,
+				URL:     content.Author.URL,
+				Name:    content.Author.Name,
+				IconURL: content.Author.AvatarURL,
 			},
 		}},
 	}

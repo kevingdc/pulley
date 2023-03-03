@@ -17,8 +17,9 @@ const (
 )
 
 type MessageAuthor struct {
-	URL  string
-	Name string
+	URL       string
+	Name      string
+	AvatarURL string
 }
 
 type MessageContent struct {

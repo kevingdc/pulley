@@ -2,6 +2,7 @@ package pr
 
 import (
 	"github.com/kevingdc/pulley/pkg/app"
+	"github.com/kevingdc/pulley/pkg/messenger"
 	"github.com/kevingdc/pulley/services/api/github/event"
 )
 
@@ -10,12 +11,12 @@ type ClosedReopenedActionHandler struct {
 }
 
 func (h *ClosedReopenedActionHandler) Handle() (event.HandlerResponse, error) {
-	usersToMessage := h.handler.affectedUsers()
+	usersToMessage := h.handler.prUserService.GetAffectedUsers(h.handler.prEvent)
 	if len(usersToMessage) == 0 {
 		return nil, nil
 	}
 
-	err := h.handler.messageUsers(usersToMessage, h.generateMessageContent())
+	err := messenger.SendToUsers(usersToMessage, h.generateMessageContent())
 	if err != nil {
 		return nil, err
 	}

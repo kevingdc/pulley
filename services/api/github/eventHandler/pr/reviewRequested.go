@@ -2,7 +2,7 @@ package pr
 
 import (
 	"github.com/kevingdc/pulley/pkg/app"
-	"github.com/kevingdc/pulley/pkg/idconv"
+	"github.com/kevingdc/pulley/pkg/messenger"
 	"github.com/kevingdc/pulley/services/api/github/event"
 )
 
@@ -16,7 +16,7 @@ func (h *ReviewRequestedActionHandler) Handle() (event.HandlerResponse, error) {
 		return nil, nil
 	}
 
-	err := h.handler.messageUser(user, h.handler.generateMessageContent("Review Requested", app.ColorYellow))
+	err := messenger.SendToUser(user, h.handler.generateMessageContent("Review Requested", app.ColorYellow))
 	if err != nil {
 		return nil, err
 	}
@@ -25,16 +25,12 @@ func (h *ReviewRequestedActionHandler) Handle() (event.HandlerResponse, error) {
 }
 
 func (h *ReviewRequestedActionHandler) userToMessage() *app.User {
-	userService := h.handler.userService
+	prUserService := h.handler.prUserService
 
-	requestedReviewerID := h.handler.prEvent.GetRequestedReviewer().GetID()
-
-	if requestedReviewerID == h.handler.eventSender().GetID() {
+	requestedReviewer := h.handler.prEvent.GetRequestedReviewer()
+	if prUserService.IsUserSameAsSender(requestedReviewer, h.handler.prEvent) {
 		return nil
 	}
 
-	repoID := idconv.ToRepoID(requestedReviewerID)
-	user, _ := userService.FindOneByRepositoryIDAndType(repoID, app.RepoGitHub)
-
-	return user
+	return prUserService.GetRequestedReviewerUser(h.handler.prEvent)
 }

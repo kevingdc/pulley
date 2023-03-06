@@ -17,10 +17,12 @@ func Handle(e *event.Payload) (event.HandlerResponse, error) {
 
 func resolve(e *event.Payload) event.Handler {
 	switch e.Type {
-	case event.EventInstallation:
+	case event.TypeInstallation:
 		return NewInstallationEventHandler(e)
-	case event.EventPullRequest:
+	case event.TypePullRequest:
 		return pr.New(e)
+	case event.TypePullRequestReview:
+		return NewPullRequestReviewEventHandler(e)
 	default:
 		return nil
 	}

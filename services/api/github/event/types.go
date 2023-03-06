@@ -9,7 +9,7 @@ type Payload struct {
 	App     *app.App
 	Payload interface{}
 	Github  *github.Client
-	Type    Type
+	Type    WebhookType
 }
 
 type HandlerResponse interface{}
@@ -18,13 +18,13 @@ type Handler interface {
 	Handle() (HandlerResponse, error)
 }
 
-type Type string
+type WebhookType string
 
 const (
-	EventInstallation             Type = "installation"
-	EventPullRequest              Type = "pull_request"
-	EventPullRequestReview        Type = "pull_request_review"
-	EventPullRequestReviewComment Type = "pull_request_review_comment"
+	TypeInstallation             WebhookType = "installation"
+	TypePullRequest              WebhookType = "pull_request"
+	TypePullRequestReview        WebhookType = "pull_request_review"
+	TypePullRequestReviewComment WebhookType = "pull_request_review_comment"
 )
 
 type Action string

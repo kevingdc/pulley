@@ -44,3 +44,24 @@ func Send(m *app.Message) error {
 
 	return nil
 }
+
+func SendToUsers(u []*app.User, content *app.MessageContent) error {
+	g := new(errgroup.Group)
+
+	for _, user := range u {
+		if user == nil {
+			continue
+		}
+
+		user := user
+		g.Go(func() error {
+			return SendToUser(user, content)
+		})
+	}
+
+	return g.Wait()
+}
+
+func SendToUser(u *app.User, content *app.MessageContent) error {
+	return Send(&app.Message{User: u, Content: content})
+}

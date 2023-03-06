@@ -2,7 +2,7 @@ package pr
 
 import (
 	"github.com/kevingdc/pulley/pkg/app"
-	"github.com/kevingdc/pulley/pkg/idconv"
+	"github.com/kevingdc/pulley/pkg/messenger"
 	"github.com/kevingdc/pulley/services/api/github/event"
 )
 
@@ -16,7 +16,7 @@ func (h *AssignedUnassignedActionHandler) Handle() (event.HandlerResponse, error
 		return nil, nil
 	}
 
-	err := h.handler.messageUser(user, h.generateMessageContent())
+	err := messenger.SendToUser(user, h.generateMessageContent())
 	if err != nil {
 		return nil, err
 	}
@@ -25,18 +25,14 @@ func (h *AssignedUnassignedActionHandler) Handle() (event.HandlerResponse, error
 }
 
 func (h *AssignedUnassignedActionHandler) userToMessage() *app.User {
-	userService := h.handler.userService
+	prUserService := h.handler.prUserService
 
-	assigneeID := h.handler.prEvent.GetAssignee().GetID()
-
-	if assigneeID == h.handler.eventSender().GetID() {
+	assignee := h.handler.prEvent.GetAssignee()
+	if prUserService.IsUserSameAsSender(assignee, h.handler.prEvent) {
 		return nil
 	}
 
-	repoID := idconv.ToRepoID(assigneeID)
-	user, _ := userService.FindOneByRepositoryIDAndType(repoID, app.RepoGitHub)
-
-	return user
+	return prUserService.GetAssigneeUser(h.handler.prEvent)
 }
 
 func (h *AssignedUnassignedActionHandler) generateMessageContent() *app.MessageContent {
@@ -59,15 +55,4 @@ func (h *AssignedUnassignedActionHandler) generateMessageContent() *app.MessageC
 	}
 
 	return h.handler.generateMessageContent(actionLabel, color)
-}
-
-func (h *AssignedUnassignedActionHandler) actionLabel() string {
-	switch h.handler.action {
-	case event.ActionPRAssigned:
-		return "Assigned"
-	case event.ActionPRUnassigned:
-		return "Unassigned"
-	default:
-		return ""
-	}
 }

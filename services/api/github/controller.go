@@ -44,7 +44,7 @@ func handleGithubWebhook(app *app.App) fiber.Handler {
 			App:     app,
 			Payload: payload,
 			Github:  client,
-			Type:    event.Type(eventType),
+			Type:    event.WebhookType(eventType),
 		})
 		if err != nil {
 			log.Println(err)

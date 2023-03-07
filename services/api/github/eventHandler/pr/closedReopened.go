@@ -11,12 +11,12 @@ type ClosedReopenedActionHandler struct {
 }
 
 func (h *ClosedReopenedActionHandler) Handle() (event.HandlerResponse, error) {
-	usersToMessage := h.handler.prUserService.GetAffectedUsers(h.handler.prEvent)
-	if len(usersToMessage) == 0 {
+	affectedUsers := h.handler.prUserService.GetAffectedUsers(h.handler.prEvent)
+	if len(affectedUsers) == 0 {
 		return nil, nil
 	}
 
-	err := messenger.SendToUsers(usersToMessage, h.generateMessageContent())
+	err := messenger.SendToUsers(affectedUsers, h.generateMessageContent())
 	if err != nil {
 		return nil, err
 	}

@@ -60,3 +60,30 @@ func (e *PRReviewRequested) Name() string {
 func (e *PRReviewRequested) Color() app.Color {
 	return app.ColorYellow
 }
+
+type PRApproved struct{}
+
+func (e *PRApproved) Name() string {
+	return "Approved"
+}
+func (e *PRApproved) Color() app.Color {
+	return app.ColorGreen
+}
+
+type PRCommented struct{}
+
+func (e *PRCommented) Name() string {
+	return "Comments Added"
+}
+func (e *PRCommented) Color() app.Color {
+	return app.ColorWhite
+}
+
+type PRChangesRequested struct{}
+
+func (e *PRChangesRequested) Name() string {
+	return "Changes Requested"
+}
+func (e *PRChangesRequested) Color() app.Color {
+	return app.ColorOrange
+}

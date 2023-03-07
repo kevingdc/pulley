@@ -27,6 +27,10 @@ func Send(m *app.Message) error {
 		return fmt.Errorf("user is nil")
 	}
 
+	if m.Content == nil {
+		return fmt.Errorf("content is nil")
+	}
+
 	g := new(errgroup.Group)
 
 	for _, handler := range messageHandler.handlers {

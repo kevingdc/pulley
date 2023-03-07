@@ -45,5 +45,6 @@ type ReviewState string
 const (
 	ReviewDismissed        ReviewState = "dismissed"
 	ReviewApproved         ReviewState = "approved"
+	ReviewCommented        ReviewState = "commented"
 	ReviewChangesRequested ReviewState = "changes_requested"
 )

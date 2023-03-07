@@ -36,23 +36,18 @@ func (h *AssignedUnassignedActionHandler) userToMessage() *app.User {
 }
 
 func (h *AssignedUnassignedActionHandler) generateMessageContent() *app.MessageContent {
-	var (
-		actionLabel string
-		color       app.Color
-	)
+	var e event.Event
 
 	switch h.handler.action {
 	case event.ActionPRAssigned:
-		actionLabel = "Assigned"
-		color = app.ColorCyan
+		e = &event.PRAssigned{}
 
 	case event.ActionPRUnassigned:
-		actionLabel = "Unassigned"
-		color = app.ColorGrey
+		e = &event.PRUnassigned{}
 
 	default:
 		return nil
 	}
 
-	return h.handler.generateMessageContent(actionLabel, color)
+	return h.handler.generateMessageContent(e)
 }

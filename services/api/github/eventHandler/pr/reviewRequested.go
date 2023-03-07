@@ -16,7 +16,7 @@ func (h *ReviewRequestedActionHandler) Handle() (event.HandlerResponse, error) {
 		return nil, nil
 	}
 
-	err := messenger.SendToUser(user, h.handler.generateMessageContent("Review Requested", app.ColorYellow))
+	err := messenger.SendToUser(user, h.handler.generateMessageContent(&event.PRReviewRequested{}))
 	if err != nil {
 		return nil, err
 	}

@@ -25,24 +25,18 @@ func (h *ClosedReopenedActionHandler) Handle() (event.HandlerResponse, error) {
 }
 
 func (h *ClosedReopenedActionHandler) generateMessageContent() *app.MessageContent {
-	var (
-		actionLabel string
-		color       app.Color
-	)
+	var e event.Event
 
 	switch {
 	case h.handler.action == event.ActionPRReopened:
-		actionLabel = "Reopened"
-		color = app.ColorBlue
+		e = &event.PRReopened{}
 
 	case h.handler.pr.GetMerged():
-		actionLabel = "Merged"
-		color = app.ColorPurple
+		e = &event.PRMerged{}
 
 	default:
-		actionLabel = "Closed"
-		color = app.ColorRed
+		e = &event.PRClosed{}
 	}
 
-	return h.handler.generateMessageContent(actionLabel, color)
+	return h.handler.generateMessageContent(e)
 }

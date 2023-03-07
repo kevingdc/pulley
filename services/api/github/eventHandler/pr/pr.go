@@ -1,8 +1,6 @@
 package pr
 
 import (
-	"fmt"
-
 	"github.com/google/go-github/v50/github"
 	"github.com/kevingdc/pulley/pkg/app"
 	internalgithub "github.com/kevingdc/pulley/pkg/github"
@@ -69,37 +67,12 @@ func (h *PullRequestEventHandler) resolve() event.Handler {
 	}
 }
 
-func (h *PullRequestEventHandler) generateMessageContent(actionLabel string, color app.Color) *app.MessageContent {
-	actingUser := h.eventSender()
-	pr := h.pr
+func (h *PullRequestEventHandler) generateMessageContent(event event.Event) *app.MessageContent {
+	builder := internalgithub.NewPRMessageBuilder()
+	builder.SetPR(h.pr)
+	builder.SetSender(h.prEvent.GetSender())
+	builder.SetEvent(event)
+	builder.SetMessageType(internalgithub.TypePRMessage)
 
-	commitLabel := "commit"
-	if pr.GetCommits() > 1 {
-		commitLabel = "commits"
-	}
-
-	fileLabel := "file"
-	if pr.GetChangedFiles() > 1 {
-		fileLabel = "files"
-	}
-
-	return &app.MessageContent{
-		URL:       pr.GetHTMLURL(),
-		Title:     fmt.Sprintf("#%d %s", pr.GetNumber(), pr.GetTitle()),
-		Subtitle:  fmt.Sprintf("*%d %s, %d %s changed*", pr.GetCommits(), commitLabel, pr.GetChangedFiles(), fileLabel),
-		Body:      pr.GetBody(),
-		Color:     color,
-		Thumbnail: pr.GetUser().GetAvatarURL(),
-		Author: &app.MessageAuthor{
-			Name:      actingUser.GetLogin(),
-			URL:       actingUser.GetHTMLURL(),
-			AvatarURL: actingUser.GetAvatarURL(),
-		},
-		Header: fmt.Sprintf("PR %s", actionLabel),
-		Footer: h.repo.GetFullName(),
-	}
-}
-
-func (h *PullRequestEventHandler) eventSender() *github.User {
-	return h.prEvent.GetSender()
+	return builder.Build()
 }

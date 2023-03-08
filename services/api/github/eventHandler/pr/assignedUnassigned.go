@@ -28,11 +28,11 @@ func (h *AssignedUnassignedActionHandler) userToMessage() *app.User {
 	prUserService := h.handler.prUserService
 
 	assignee := h.handler.prEvent.GetAssignee()
-	if prUserService.IsUserSameAsSender(assignee, h.handler.prEvent) {
+	if prUserService.IsUserSameAsSender(assignee, h.handler.adapter) {
 		return nil
 	}
 
-	return prUserService.GetAssigneeUser(h.handler.prEvent)
+	return prUserService.GetAssigneeUser(h.handler.adapter)
 }
 
 func (h *AssignedUnassignedActionHandler) generateMessageContent() *app.MessageContent {

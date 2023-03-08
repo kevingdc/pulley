@@ -11,7 +11,7 @@ type ClosedReopenedActionHandler struct {
 }
 
 func (h *ClosedReopenedActionHandler) Handle() (event.HandlerResponse, error) {
-	affectedUsers := h.handler.prUserService.GetAffectedUsers(h.handler.prEvent)
+	affectedUsers := h.handler.prUserService.GetAffectedUsers(h.handler.adapter)
 	if len(affectedUsers) == 0 {
 		return nil, nil
 	}

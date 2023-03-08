@@ -6,9 +6,18 @@ import (
 	"github.com/kevingdc/pulley/pkg/idconv"
 )
 
-type PullRequestEvent interface {
-	GetPullRequest() *github.PullRequest
+type PullRequest interface {
 	GetSender() *github.User
+	GetOwner() *github.User
+	GetAssignees() []*github.User
+}
+
+type PullRequestAssignee interface {
+	GetAssignee() *github.User
+}
+
+type PullRequestRequestedReviewer interface {
+	GetRequestedReviewer() *github.User
 }
 
 type PRUserService struct {
@@ -21,21 +30,16 @@ func NewPRUserService(userService app.UserService) *PRUserService {
 	}
 }
 
-func (s *PRUserService) IsUserSameAsSender(u *github.User, e PullRequestEvent) bool {
-	return u.GetID() == e.GetSender().GetID()
-}
-
-func (s *PRUserService) GetAffectedUsers(e PullRequestEvent) []*app.User {
-	pr := e.GetPullRequest()
+func (s *PRUserService) GetAffectedUsers(pr PullRequest) []*app.User {
 	users := []*app.User{}
 
-	if !s.isPROwnerSameAsEventSender(e) {
-		user := s.GetOwnerUserFromPR(pr)
+	if !s.isPROwnerSameAsEventSender(pr) {
+		user := s.GetOwnerUser(pr)
 		users = append(users, user)
 	}
 
-	senderID := e.GetSender().GetID()
-	for _, assignee := range pr.Assignees {
+	senderID := pr.GetSender().GetID()
+	for _, assignee := range pr.GetAssignees() {
 		assigneeID := assignee.GetID()
 		if assigneeID == senderID {
 			continue
@@ -52,22 +56,18 @@ func (s *PRUserService) GetAffectedUsers(e PullRequestEvent) []*app.User {
 	return users
 }
 
-func (s *PRUserService) GetOwnerUserFromEvent(e PullRequestEvent) *app.User {
-	return s.GetOwnerUserFromPR(e.GetPullRequest())
-}
-
-func (s *PRUserService) GetOwnerUserFromPR(pr *github.PullRequest) *app.User {
-	ownerID := pr.GetUser().GetID()
+func (s *PRUserService) GetOwnerUser(pr PullRequest) *app.User {
+	ownerID := pr.GetOwner().GetID()
 	return s.FindUserByRepoID(ownerID)
 }
 
-func (s *PRUserService) GetAssigneeUser(e *github.PullRequestEvent) *app.User {
-	assigneeID := e.GetAssignee().GetID()
+func (s *PRUserService) GetAssigneeUser(pr PullRequestAssignee) *app.User {
+	assigneeID := pr.GetAssignee().GetID()
 	return s.FindUserByRepoID(assigneeID)
 }
 
-func (s *PRUserService) GetRequestedReviewerUser(e *github.PullRequestEvent) *app.User {
-	reviewerID := e.GetRequestedReviewer().GetID()
+func (s *PRUserService) GetRequestedReviewerUser(pr PullRequestRequestedReviewer) *app.User {
+	reviewerID := pr.GetRequestedReviewer().GetID()
 	return s.FindUserByRepoID(reviewerID)
 }
 
@@ -81,7 +81,10 @@ func (s *PRUserService) FindUserByRepoID(repoID int64) *app.User {
 	return u
 }
 
-func (s *PRUserService) isPROwnerSameAsEventSender(e PullRequestEvent) bool {
-	pr := e.GetPullRequest()
-	return pr.GetUser().GetID() == e.GetSender().GetID()
+func (s *PRUserService) IsUserSameAsSender(u *github.User, pr PullRequest) bool {
+	return u.GetID() == pr.GetSender().GetID()
+}
+
+func (s *PRUserService) isPROwnerSameAsEventSender(pr PullRequest) bool {
+	return s.IsUserSameAsSender(pr.GetOwner(), pr)
 }

@@ -15,6 +15,7 @@ type PullRequestEventHandler struct {
 	prEvent       *github.PullRequestEvent
 	pr            *github.PullRequest
 	repo          *github.Repository
+	adapter       *prAdapter
 }
 
 func New(e *event.Payload) *PullRequestEventHandler {
@@ -32,6 +33,7 @@ func New(e *event.Payload) *PullRequestEventHandler {
 		repo:          repo,
 		app:           e.App,
 		prUserService: prUserService,
+		adapter:       &prAdapter{prEvent: prEvent},
 	}
 }
 

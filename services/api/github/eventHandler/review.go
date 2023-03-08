@@ -36,7 +36,7 @@ func NewPullRequestReviewEventHandler(e *event.Payload) *PullRequestReviewEventH
 }
 
 func (h *PullRequestReviewEventHandler) Handle() (event.HandlerResponse, error) {
-	affectedUsers := h.prUserService.GetAffectedUsers(h.reviewEvent)
+	affectedUsers := h.prUserService.GetAffectedUsers(h)
 	if len(affectedUsers) == 0 {
 		return nil, nil
 	}
@@ -47,6 +47,18 @@ func (h *PullRequestReviewEventHandler) Handle() (event.HandlerResponse, error) 
 	}
 
 	return nil, nil
+}
+
+func (h *PullRequestReviewEventHandler) GetSender() *github.User {
+	return h.reviewEvent.GetSender()
+}
+
+func (h *PullRequestReviewEventHandler) GetOwner() *github.User {
+	return h.pr.GetUser()
+}
+
+func (h *PullRequestReviewEventHandler) GetAssignees() []*github.User {
+	return h.pr.Assignees
 }
 
 func (h *PullRequestReviewEventHandler) generateMessageContent() *app.MessageContent {

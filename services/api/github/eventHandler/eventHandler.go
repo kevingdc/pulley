@@ -23,6 +23,8 @@ func resolve(e *event.Payload) event.Handler {
 		return pr.New(e)
 	case event.TypePullRequestReview:
 		return NewPullRequestReviewEventHandler(e)
+	case event.TypePullRequestComment:
+		return NewPullRequestCommentEventHandler(e)
 	default:
 		return nil
 	}

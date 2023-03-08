@@ -28,9 +28,9 @@ func (h *ReviewRequestedActionHandler) userToMessage() *app.User {
 	prUserService := h.handler.prUserService
 
 	requestedReviewer := h.handler.prEvent.GetRequestedReviewer()
-	if prUserService.IsUserSameAsSender(requestedReviewer, h.handler.prEvent) {
+	if prUserService.IsUserSameAsSender(requestedReviewer, h.handler.adapter) {
 		return nil
 	}
 
-	return prUserService.GetRequestedReviewerUser(h.handler.prEvent)
+	return prUserService.GetRequestedReviewerUser(h.handler.adapter)
 }

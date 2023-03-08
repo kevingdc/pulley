@@ -18,11 +18,16 @@ const (
 type PRMessageBuilder struct {
 	pr          *github.PullRequest
 	prOwner     *github.User
-	prReview    *github.PullRequestReview
+	prReview    PRReview
 	repo        *github.Repository
 	sender      *github.User
 	event       event.Event
 	messageType PRMessageType
+}
+
+type PRReview interface {
+	GetBody() string
+	GetUser() *github.User
 }
 
 func NewPRMessageBuilder() *PRMessageBuilder {
@@ -36,7 +41,7 @@ func (b *PRMessageBuilder) SetPR(pr *github.PullRequest) *PRMessageBuilder {
 	return b
 }
 
-func (b *PRMessageBuilder) SetPRReview(prReview *github.PullRequestReview) *PRMessageBuilder {
+func (b *PRMessageBuilder) SetPRReview(prReview PRReview) *PRMessageBuilder {
 	b.prReview = prReview
 	return b
 }

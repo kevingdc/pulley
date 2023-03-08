@@ -25,6 +25,7 @@ const (
 	TypePullRequest              WebhookType = "pull_request"
 	TypePullRequestReview        WebhookType = "pull_request_review"
 	TypePullRequestReviewComment WebhookType = "pull_request_review_comment"
+	TypePullRequestComment       WebhookType = "issue_comment"
 )
 
 type Action string

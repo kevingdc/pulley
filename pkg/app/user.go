@@ -32,6 +32,9 @@ type ChatConfig struct {
 type UserService interface {
 	Create(user *User) error
 	FindByID(id int64) (*User, error)
+	FindByRepositoryIDAndType(repositoryID string, repositoryType Repo) ([]User, error)
 	FindOneByRepositoryIDAndType(repositoryID string, repositoryType Repo) (*User, error)
+	FindByChatIDAndType(chatID string, chatType Chat) ([]User, error)
+	FindOneByChatIDAndType(chatID string, chatType Chat) (*User, error)
 	Exists(user *User) bool
 }

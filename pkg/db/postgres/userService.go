@@ -11,6 +11,10 @@ type UserService struct {
 	DB *sql.DB
 }
 
+type Scanner interface {
+	Scan(dest ...any) error
+}
+
 func (s *UserService) Create(user *app.User) error {
 	var lastInsertId int64
 
@@ -42,12 +46,49 @@ func (s *UserService) FindByID(id int64) (*app.User, error) {
 	return s.scanRow(row)
 }
 
+func (s *UserService) FindByRepositoryIDAndType(repositoryID string, repositoryType app.Repo) ([]app.User, error) {
+	rows, err := s.DB.Query(`
+	SELECT *
+	FROM users
+	WHERE repository_id = $1 AND repository_type = $2;
+`, repositoryID, repositoryType)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	return s.scanRows(rows)
+}
+
 func (s *UserService) FindOneByRepositoryIDAndType(repositoryID string, repositoryType app.Repo) (*app.User, error) {
 	row := s.DB.QueryRow(`
 	SELECT *
 	FROM users
 	WHERE repository_id = $1 AND repository_type = $2;
 `, repositoryID, repositoryType)
+	return s.scanRow(row)
+}
+
+func (s *UserService) FindByChatIDAndType(chatID string, chatType app.Chat) ([]app.User, error) {
+	rows, err := s.DB.Query(`
+	SELECT *
+	FROM users
+	WHERE chat_id = $1 AND chat_type = $2;
+`, chatID, chatType)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	return s.scanRows(rows)
+}
+
+func (s *UserService) FindOneByChatIDAndType(chatID string, chatType app.Chat) (*app.User, error) {
+	row := s.DB.QueryRow(`
+	SELECT *
+	FROM users
+	WHERE chat_id = $1 AND chat_type = $2;
+`, chatID, chatType)
 	return s.scanRow(row)
 }
 
@@ -105,10 +146,28 @@ func (s *UserService) Exists(user *app.User) bool {
 	row := s.DB.QueryRow(query, values...)
 	_, err := s.scanRow(row)
 	return err == nil
-
 }
 
-func (s *UserService) scanRow(row *sql.Row) (*app.User, error) {
+func (s *UserService) scanRows(rows *sql.Rows) ([]app.User, error) {
+	var users []app.User
+
+	for rows.Next() {
+		user, err := s.scanRow(rows)
+		if err != nil {
+			return users, err
+		}
+
+		users = append(users, *user)
+	}
+
+	if err := rows.Err(); err != nil {
+		return users, err
+	}
+
+	return users, nil
+}
+
+func (s *UserService) scanRow(row Scanner) (*app.User, error) {
 	var user app.User
 	if err := row.Scan(&user.ID, &user.RepositoryID, &user.RepositoryType, &user.ChatID, &user.ChatType, &user.CreatedAt, &user.UpdatedAt); err != nil {
 		if err == sql.ErrNoRows {
